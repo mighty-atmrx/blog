@@ -2,12 +2,14 @@
 
 namespace App\Http\Services;
 
-use App\Http\Repositories\PostRepository;
-use App\Models\Post;
+use App\Application\Post\Dto\CreatePostDto;
+use App\Application\Post\Dto\PostDto;
+use App\Domain\Post\Entity\Post;
+use App\Domain\Post\Repository\PostRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
-class PostService
+class PostService extends BaseService
 {
     public function __construct(
         private readonly PostRepository $repository,
@@ -39,5 +41,30 @@ class PostService
         }
 
         return $post;
+    }
+
+    public function getByUserId(int $userId): ?Collection
+    {
+        if (!$userId) {
+            return null;
+        }
+
+        $posts = Cache::get("posts:user_id:{$userId}");
+
+        if (!$posts) {
+            $posts = Cache::remember("posts:user_id:{$userId}", 60*60*24, function () use ($userId) {
+                return $this->repository->getByUserId($userId);
+            });
+        }
+
+        return $posts;
+    }
+
+    public function create(array $data): PostDto
+    {
+        $post = $this->repository->create($data);
+        Cache::put('posts:id:'.$post->getId(), $post);
+        Cache::put('posts:slug:'.$post->getSlug(), $post);
+        return PostDto::fromEntity($post);
     }
 }
