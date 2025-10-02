@@ -3,6 +3,7 @@
 namespace App\Presentation\Http\Controllers;
 
 use App\Domain\Post\Entity\Post;
+use App\Domain\Post\Repository\PostRepository;
 use App\Http\Services\PostService;
 use App\Presentation\Http\Requests\Post\CreateRequest;
 use App\Presentation\Http\Requests\Post\UpdateRequest;
@@ -79,9 +80,15 @@ class PostController extends Controller
         }
     }
 
-    public function update(UpdateRequest $request): Post
+    public function update(UpdateRequest $request): JsonResponse
     {
+        try {
+            $data = $request->validated();
+            $post = $this->postService->update();
+            return response()->json(new PostResource($post), Response::HTTP_OK);
+        } catch (\Throwable $e) {
 
+        }
     }
 
     public function delete(): JsonResponse

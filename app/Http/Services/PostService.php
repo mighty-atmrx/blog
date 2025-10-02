@@ -13,12 +13,12 @@ class PostService extends BaseService
 {
     public function __construct(
         private readonly PostRepository $repository,
-    ){
+    ) {
     }
 
     public function getAll(): ?Collection
     {
-        return Cache::remember('posts:all', 60*60, function () {
+        return Cache::remember('posts:all', 60 * 60, function () {
             $posts = $this->repository->getAll();
             return $posts->isNotEmpty() ? $posts : null;
         });
@@ -52,7 +52,7 @@ class PostService extends BaseService
         $posts = Cache::get("posts:user_id:{$userId}");
 
         if (!$posts) {
-            $posts = Cache::remember("posts:user_id:{$userId}", 60*60*24, function () use ($userId) {
+            $posts = Cache::remember("posts:user_id:{$userId}", 60 * 60 * 24, function () use ($userId) {
                 return $this->repository->getByUserId($userId);
             });
         }
@@ -63,8 +63,15 @@ class PostService extends BaseService
     public function create(array $data): PostDto
     {
         $post = $this->repository->create($data);
-        Cache::put('posts:id:'.$post->getId(), $post);
-        Cache::put('posts:slug:'.$post->getSlug(), $post);
+        Cache::put('posts:id:' . $post->getId(), $post);
+        Cache::put('posts:slug:' . $post->getSlug(), $post);
+        return PostDto::fromEntity($post);
+    }
+
+    public function update(array $data): PostDto
+    {
+        $post = $this->repository->update($data);
+        // найти в кэше и обновить
         return PostDto::fromEntity($post);
     }
 }
