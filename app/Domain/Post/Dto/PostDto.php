@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Post\Dto;
+namespace App\Domain\Post\Dto;
 
 use App\Domain\Post\Entity\Post;
 

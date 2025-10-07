@@ -24,6 +24,8 @@ return new class extends Migration
             $table->unsignedBigInteger('community_id')->nullable();
             $table->foreign('community_id')->references('id')->on('communities')->onDelete('cascade');
 
+            $table->string('state');
+
             $table->integer('views')->default(0);
             $table->integer('likes')->default(0);
             $table->integer('reposts')->default(0);

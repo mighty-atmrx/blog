@@ -10,8 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \
         libssl-dev \
         libonig-dev \
-    && docker-php-ext-configure zip \
-    && docker-php-ext-install -j$(nproc) zip mbstring pdo pdo_pgsql \
+    && docker-php-ext-install pdo pdo_pgsql zip mbstring pcntl bcmath exif \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

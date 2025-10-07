@@ -3,6 +3,7 @@
 namespace App\Domain\Post\Entity;
 
 use App\Domain\Community\Entity\Community;
+use App\Domain\Post\Enum\StateEnum;
 use App\Domain\User\Entity\User;
 use App\Http\Interfaces\PostEntityInterface;
 use Carbon\Carbon;
@@ -81,6 +82,11 @@ class Post extends Model implements PostEntityInterface
         return $this->user_id;
     }
 
+    public function getState(): StateEnum
+    {
+        return $this->state;
+    }
+
     public function getViews(): int
     {
         return $this->views;
@@ -111,5 +117,20 @@ class Post extends Model implements PostEntityInterface
         return $this->deleted_at
             ? \DateTimeImmutable::createFromMutable($this->deleted_at)
             : null;
+    }
+
+    public function incrementViews(): void
+    {
+        $this->views++;
+    }
+
+    public function incrementLikes(): void
+    {
+        $this->likes++;
+    }
+
+    public function incrementReposts(): void
+    {
+        $this->reposts++;
     }
 }

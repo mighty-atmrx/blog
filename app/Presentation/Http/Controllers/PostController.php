@@ -2,9 +2,8 @@
 
 namespace App\Presentation\Http\Controllers;
 
-use App\Domain\Post\Entity\Post;
-use App\Domain\Post\Repository\PostRepository;
-use App\Http\Services\PostService;
+use App\Http\Services\Post\PostCommandService;
+use App\Http\Services\Post\PostQueryService;
 use App\Presentation\Http\Requests\Post\CreateRequest;
 use App\Presentation\Http\Requests\Post\UpdateRequest;
 use App\Presentation\Http\Resources\PostResource;
@@ -16,14 +15,15 @@ class PostController extends Controller
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly PostService $postService
+        private readonly PostQueryService $queryService,
+        private readonly PostCommandService $commandService
     ) {
     }
 
     public function getAll(): JsonResponse
     {
         try {
-            $posts = $this->postService->getAll();
+            $posts = $this->queryService->getAll();
             return response()->json(PostResource::collection($posts), Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error('Get all posts error. ', ['error' => $e->getMessage()]);
@@ -37,7 +37,7 @@ class PostController extends Controller
     public function getByIdentifier($identifier): JsonResponse
     {
         try {
-            $post = $this->postService->getByIdentifier($identifier);
+            $post = $this->queryService->getByIdentifier($identifier);
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error('Get post by identifier error. ', [
@@ -54,7 +54,7 @@ class PostController extends Controller
     public function getByUserId(int $userId): JsonResponse
     {
         try {
-            $posts = $this->postService->getByUserId($userId);
+            $posts = $this->queryService->getByUserId($userId);
             return response()->json(PostResource::collection($posts), Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error("Get user's posts error: " . $e->getMessage());
@@ -69,31 +69,44 @@ class PostController extends Controller
     {
         try {
             $data = $request->validated();
-            $post = $this->postService->create($data);
+            $post = $this->commandService->create($data);
             return response()->json(new PostResource($post), Response::HTTP_CREATED);
         } catch (\Throwable $e) {
-            $this->logger->error('Unable to create user. Please try again later.');
+            $this->logger->error('Unable to create post.', ['error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to create user. Please try again later.',
+                ['error' => 'Unable to create post. Please try again later.',
                 Response::HTTP_INTERNAL_SERVER_ERROR
             ]);
         }
     }
 
-    public function update(UpdateRequest $request): JsonResponse
+    public function update(UpdateRequest $request, int $id): JsonResponse
     {
         try {
             $data = $request->validated();
-            $post = $this->postService->update();
+            $post = $this->commandService->update($data, $id);
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (\Throwable $e) {
-
+            $this->logger->error('Unable to update post.', ['post_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(
+                ['error' => 'Unable to update post. Please try again later.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            ]);
         }
     }
 
-    public function delete(): JsonResponse
+    public function delete(int $id): JsonResponse
     {
-
+        try {
+            $this->commandService->delete($id);
+            return response()->json(['message' => 'Post deleted successfully'], Response::HTTP_OK);
+        } catch (\Throwable $e) {
+            $this->logger->error('Unable to delete post.', ['post_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(
+                ['error' => 'Unable to delete post. Please try again later.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            ]);
+        }
     }
 
 

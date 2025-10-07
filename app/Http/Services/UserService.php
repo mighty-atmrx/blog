@@ -3,13 +3,14 @@
 namespace App\Http\Services;
 
 use App\Http\Repositories\UserRepository;
+use App\Http\Services\Post\PostQueryService;
 use App\Presentation\Http\Resources\UserResource;
 
 class UserService extends BaseService
 {
     public function __construct(
         private readonly UserRepository $repository,
-        private readonly PostService $postService,
+        private readonly PostQueryService $postService,
     ){
     }
 
