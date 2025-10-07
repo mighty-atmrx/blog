@@ -2,57 +2,82 @@
 
 namespace App\Infrastructure\Redis;
 
+use App\Application\Post\Exception\PostNotFoundException;
 use App\Domain\Post\Entity\Post;
+use App\Domain\Post\Repository\PostRepository;
 use App\Domain\Post\Repository\PostRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Psr\SimpleCache\CacheInterface;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
-readonly class CachedPostRepository implements CachedPostRepositoryInterface
+readonly class CachedPostRepository implements PostRepositoryInterface
 {
     public function __construct(
-        private PostRepositoryInterface $repository,
-        private CacheInterface $cache
+        private PostRepository $repository,
+        private CacheRepository $cache
     ) {}
 
     public function getAll(): Collection
     {
         return $this->cache->remember('posts:all', 60 * 60 * 24, function () {
-            $posts = $this->repository->getAll();
-            return $posts->isNotEmpty() ? $posts : new Collection();
+            return $this->repository->getAll();
         });
     }
 
     public function getByIdentifier(int|string $identifier): ?Post
     {
         if (is_numeric($identifier)) {
-            return $this->cache->get("posts:id:{$identifier}");
+            $post = $this->cache->get("posts:id:{$identifier}");
         } else {
-            return $this->cache->get("posts:slug:{$identifier}");
+            $post = $this->cache->get("posts:slug:{$identifier}");
         }
+
+        if (!$post) {
+            $post = $this->repository->getByIdentifier($identifier);
+        }
+
+        return $post;
     }
 
     public function getByUserId(int $userId): ?Collection
     {
-        $posts = $this->cache->get("posts:user_id:{$userId}");
+        return $this->cache->remember("posts:user_id:{$userId}", 60 * 60 * 24, function () use ($userId) {
+            return $this->repository->getByUserId($userId);
+        });
+    }
 
-        if (!$posts) {
-            $posts = $this->cache->remember("posts:user_id:{$userId}", 60 * 60 * 24, function () use ($userId) {
-                return $this->repository->getByUserId($userId);
-            });
+    public function create(array $data): Post
+    {
+        $post = $this->repository->create($data);
+        $this->cache->put('posts:id:' . $post->getId(), $post, 86400);
+        $this->cache->put('posts:slud:' . $post->getSlug(), $post, 86400);
+        $this->cache->forget('posts:all');
+        return $post;
+    }
+
+    /**
+     * @throws PostNotFoundException
+     */
+    public function update(array $data, int $id): Post
+    {
+        $post = $this->repository->update($data, $id);
+        $this->cache->put('posts:id:' . $post->getId(), $post, 86400);
+        $this->cache->put('posts:slug:' . $post->getSlug(), $post, 86400);
+        $this->cache->forget('posts:all');
+        return $post;
+    }
+
+    /**
+     * @throws PostNotFoundException
+     */
+    public function delete(int $id): void
+    {
+        $post = $this->getByIdentifier($id);
+        if (!$post) {
+            throw new PostNotFoundException();
         }
 
-        return $posts;
-    }
-
-    public function save(Post $post): void
-    {
-        $this->cache->put('posts:id:' . $post->getId(), $post, 60*60*24);
-        $this->cache->put('posts:slug:' . $post->getSlug(), $post, 60*60*24);
-    }
-
-    public function delete(Post $post): void
-    {
         $this->cache->forget("posts:id:{$post->getId()}");
         $this->cache->forget("posts:slug:{$post->getSlug()}");
+        $this->repository->delete($id);
     }
 }

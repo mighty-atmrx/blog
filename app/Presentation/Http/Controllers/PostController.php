@@ -2,14 +2,17 @@
 
 namespace App\Presentation\Http\Controllers;
 
+use App\Application\Post\Exception\PostNotFoundException;
 use App\Http\Services\Post\PostCommandService;
 use App\Http\Services\Post\PostQueryService;
 use App\Presentation\Http\Requests\Post\CreateRequest;
 use App\Presentation\Http\Requests\Post\UpdateRequest;
 use App\Presentation\Http\Resources\PostResource;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class PostController extends Controller
 {
@@ -25,27 +28,27 @@ class PostController extends Controller
         try {
             $posts = $this->queryService->getAll();
             return response()->json(PostResource::collection($posts), Response::HTTP_OK);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Get all posts error. ', ['error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to retrieve posts. Please try again later.'],
+                ['error' => 'get_all_posts_error'],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function getByIdentifier($identifier): JsonResponse
     {
         try {
             $post = $this->queryService->getByIdentifier($identifier);
             return response()->json(new PostResource($post), Response::HTTP_OK);
-        } catch (\Throwable $e) {
-            $this->logger->error('Get post by identifier error. ', [
-                'error' => $e->getMessage(),
-                'identifier' => $identifier
-            ]);
+        } catch (Throwable $e) {
+            $this->logger->error('Get post by identifier error. ', ['error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to retrieve post by identifier. Please try again later.'],
+                ['error' => 'get_post_by_identifier_error'],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
@@ -70,11 +73,12 @@ class PostController extends Controller
         try {
             $data = $request->validated();
             $post = $this->commandService->create($data);
+            // event for increment user posts count, community posts count
             return response()->json(new PostResource($post), Response::HTTP_CREATED);
         } catch (\Throwable $e) {
-            $this->logger->error('Unable to create post.', ['error' => $e->getMessage()]);
+            $this->logger->error('Post create error.', ['error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to create post. Please try again later.',
+                ['error' => 'post_create_error',
                 Response::HTTP_INTERNAL_SERVER_ERROR
             ]);
         }
@@ -87,9 +91,9 @@ class PostController extends Controller
             $post = $this->commandService->update($data, $id);
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (\Throwable $e) {
-            $this->logger->error('Unable to update post.', ['post_id' => $id, 'error' => $e->getMessage()]);
+            $this->logger->error('Post update error.', ['post_id' => $id, 'error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to update post. Please try again later.',
+                ['error' => 'post_update_error',
                 Response::HTTP_INTERNAL_SERVER_ERROR
             ]);
         }
@@ -99,11 +103,12 @@ class PostController extends Controller
     {
         try {
             $this->commandService->delete($id);
-            return response()->json(['message' => 'Post deleted successfully'], Response::HTTP_OK);
+            // event for decrement user posts count, community posts count
+            return response()->json(['message' => 'post_deleted_successfully'], Response::HTTP_OK);
         } catch (\Throwable $e) {
-            $this->logger->error('Unable to delete post.', ['post_id' => $id, 'error' => $e->getMessage()]);
+            $this->logger->error('Post delete error', ['post_id' => $id, 'error' => $e->getMessage()]);
             return response()->json(
-                ['error' => 'Unable to delete post. Please try again later.',
+                ['error' => 'post_delete_error',
                 Response::HTTP_INTERNAL_SERVER_ERROR
             ]);
         }

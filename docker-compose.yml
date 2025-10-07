@@ -49,7 +49,7 @@ services:
         ports:
             - "6379:6379"
         volumes:
-            - .app/Infrastructure/Redis/redis.conf:/usr/local/etc/redis/redis.conf
+            - ./app/Infrastructure/Redis/redis.conf:/usr/local/etc/redis/redis.conf
         command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
         networks:
             - app-network

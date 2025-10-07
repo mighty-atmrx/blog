@@ -4,7 +4,7 @@ namespace App\Application\Post\Exception;
 
 use Exception;
 
-class PostNotFoundException extends Exception
+final class PostNotFoundException extends Exception
 {
     public function __construct()
     {
