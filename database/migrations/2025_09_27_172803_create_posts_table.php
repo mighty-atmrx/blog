@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->string('image')->nullable();
-            $table->string('slug')->unique();
 
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -31,6 +30,7 @@ return new class extends Migration
             $table->integer('reposts')->default(0);
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

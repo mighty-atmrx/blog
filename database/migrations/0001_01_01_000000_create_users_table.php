@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('username');
             $table->string('email')->unique()->nullable();
             $table->string('phone')->unique()->nullable();
-            $table->integer('posts_count');
-            $table->integer('subscribers');
+            $table->integer('posts_count')->default(0);
+            $table->integer('subscribers')->default(0);
 
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

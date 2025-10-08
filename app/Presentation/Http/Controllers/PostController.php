@@ -2,7 +2,6 @@
 
 namespace App\Presentation\Http\Controllers;
 
-use App\Application\Post\Exception\PostNotFoundException;
 use App\Http\Services\Post\PostCommandService;
 use App\Http\Services\Post\PostQueryService;
 use App\Presentation\Http\Requests\Post\CreateRequest;
@@ -30,10 +29,10 @@ class PostController extends Controller
             return response()->json(PostResource::collection($posts), Response::HTTP_OK);
         } catch (Throwable $e) {
             $this->logger->error('Get all posts error. ', ['error' => $e->getMessage()]);
-            return response()->json(
-                ['error' => 'get_all_posts_error'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return response()->json([
+                'error' => 'get_all_posts_error',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -47,10 +46,10 @@ class PostController extends Controller
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (Throwable $e) {
             $this->logger->error('Get post by identifier error. ', ['error' => $e->getMessage()]);
-            return response()->json(
-                ['error' => 'get_post_by_identifier_error'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return response()->json([
+                'error' => 'get_post_by_identifier_error',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -61,26 +60,26 @@ class PostController extends Controller
             return response()->json(PostResource::collection($posts), Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error("Get user's posts error: " . $e->getMessage());
-            return response()->json(
-                ['error' => 'Unable to retrieve user posts. Please try again later.'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return response()->json([
+                'error' => 'Unable to retrieve user posts. Please try again later.',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     public function create(CreateRequest $request): JsonResponse
     {
         try {
-            $data = $request->validated();
+            $data = $request->validationData();
             $post = $this->commandService->create($data);
             // event for increment user posts count, community posts count
             return response()->json(new PostResource($post), Response::HTTP_CREATED);
         } catch (\Throwable $e) {
             $this->logger->error('Post create error.', ['error' => $e->getMessage()]);
-            return response()->json(
-                ['error' => 'post_create_error',
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            ]);
+            return response()->json([
+                'error' => 'post_create_error',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -92,10 +91,10 @@ class PostController extends Controller
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error('Post update error.', ['post_id' => $id, 'error' => $e->getMessage()]);
-            return response()->json(
-                ['error' => 'post_update_error',
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            ]);
+            return response()->json([
+                'error' => 'post_update_error',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -107,12 +106,10 @@ class PostController extends Controller
             return response()->json(['message' => 'post_deleted_successfully'], Response::HTTP_OK);
         } catch (\Throwable $e) {
             $this->logger->error('Post delete error', ['post_id' => $id, 'error' => $e->getMessage()]);
-            return response()->json(
-                ['error' => 'post_delete_error',
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            ]);
+            return response()->json([
+                'error' => 'post_delete_error',
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

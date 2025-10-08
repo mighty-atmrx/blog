@@ -2,6 +2,8 @@
 
 namespace App\Presentation\Http\Requests\Post;
 
+use App\Domain\Post\Enum\StateEnum;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateRequest extends FormRequest
@@ -17,15 +19,16 @@ class CreateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
-            'content' => 'required|text',
+            'content' => 'required|string',
             'image' => 'nullable|string',
-            'community_id' => 'nullable|integer'
+            'community_id' => 'nullable|integer',
+            'state' => 'required|string|in:' . implode(',', StateEnum::values())
         ];
     }
 }

@@ -4,32 +4,34 @@ namespace App\Domain\Post\Repository;
 
 use App\Application\Post\Exception\PostNotFoundException;
 use App\Domain\Post\Entity\Post;
-use Illuminate\Database\Eloquent\Collection;
 
 class PostRepository implements PostRepositoryInterface
 {
-    public function getAll(): Collection
+    public function getAll(): array
     {
-        return Post::all();
+        return Post::all()->toArray();
     }
 
     public function getByIdentifier(string|int $identifier): ?Post
     {
         if (is_numeric($identifier)) {
-            return Post::find($identifier);
+            return Post::query()->find($identifier);
         } else {
-            return Post::where('slug', $identifier)->first();
+            $id = explode('-', $identifier);
+            $id = end($id);
+            return Post::query()->find($id);
         }
     }
 
-    public function getByUserId(int $userId): ?Collection
+    public function getByUserId(int $userId): ?array
     {
-        return Post::where('user_id', $userId)->get();
+        return Post::query()->where('user_id', $userId)->get()->toArray();
     }
 
     public function create(array $data): Post
     {
-        return Post::create($data);
+        $data['user_id'] = 1;
+        return Post::query()->create($data);
     }
 
     /**
@@ -37,7 +39,7 @@ class PostRepository implements PostRepositoryInterface
      */
     public function update(array $data, int $id): Post
     {
-        $post = Post::find($id);
+        $post = Post::query()->find($id);
         if (!$post) {
             throw new PostNotFoundException();
         }

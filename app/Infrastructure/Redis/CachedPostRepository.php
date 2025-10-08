@@ -6,8 +6,9 @@ use App\Application\Post\Exception\PostNotFoundException;
 use App\Domain\Post\Entity\Post;
 use App\Domain\Post\Repository\PostRepository;
 use App\Domain\Post\Repository\PostRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+use Exception;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Psr\SimpleCache\InvalidArgumentException;
 
 readonly class CachedPostRepository implements PostRepositoryInterface
 {
@@ -16,13 +17,16 @@ readonly class CachedPostRepository implements PostRepositoryInterface
         private CacheRepository $cache
     ) {}
 
-    public function getAll(): Collection
+    public function getAll(): array
     {
         return $this->cache->remember('posts:all', 60 * 60 * 24, function () {
             return $this->repository->getAll();
         });
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function getByIdentifier(int|string $identifier): ?Post
     {
         if (is_numeric($identifier)) {
@@ -38,18 +42,21 @@ readonly class CachedPostRepository implements PostRepositoryInterface
         return $post;
     }
 
-    public function getByUserId(int $userId): ?Collection
+    public function getByUserId(int $userId): ?array
     {
         return $this->cache->remember("posts:user_id:{$userId}", 60 * 60 * 24, function () use ($userId) {
             return $this->repository->getByUserId($userId);
         });
     }
 
+    /**
+     * @throws Exception
+     */
     public function create(array $data): Post
     {
         $post = $this->repository->create($data);
         $this->cache->put('posts:id:' . $post->getId(), $post, 86400);
-        $this->cache->put('posts:slud:' . $post->getSlug(), $post, 86400);
+        $this->cache->put('posts:slug:' . $post->getSlug(), $post, 86400);
         $this->cache->forget('posts:all');
         return $post;
     }
@@ -68,6 +75,7 @@ readonly class CachedPostRepository implements PostRepositoryInterface
 
     /**
      * @throws PostNotFoundException
+     * @throws InvalidArgumentException
      */
     public function delete(int $id): void
     {
