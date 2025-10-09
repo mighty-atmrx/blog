@@ -22,5 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     'error' => $e->getMessage(),
                 ], Response::HTTP_NOT_FOUND);
             }
+
+            if ($e instanceof \App\Application\User\Exception\UserNotFoundException) {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                ], Response::HTTP_NOT_FOUND);
+            }
         });
     })->create();

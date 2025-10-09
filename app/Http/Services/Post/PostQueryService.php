@@ -18,7 +18,7 @@ class PostQueryService extends BaseService
     ) {
     }
 
-    public function getAll(): ?Collection
+    public function getAll(): array
     {
         return $this->repository->getAll();
     }
@@ -39,7 +39,7 @@ class PostQueryService extends BaseService
     /**
      * @throws Exception
      */
-    public function getByUserId(int $userId): ?Collection
+    public function getByUserId(int $userId): ?array
     {
         if (!$userId) {
             throw new Exception('user_id_is_required');

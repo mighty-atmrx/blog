@@ -13,6 +13,6 @@ Route::delete('/posts/{identifier}', [PostController::class, 'delete']);
 Route::get('/users/{id}/posts', [PostController::class, 'getByUserId']);
 
 Route::get('/users/{id}', [UserController::class, 'getUser']);
-Route::post('/users', [UserController::class, 'create']);
+Route::post('/users', [UserController::class, 'register']);
 Route::patch('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'delete']);

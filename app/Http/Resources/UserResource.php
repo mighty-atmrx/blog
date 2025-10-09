@@ -1,17 +1,12 @@
 <?php
 
-namespace App\Presentation\Http\Resources;
+namespace App\Http\Resources;
 
-use App\Domain\User\Dto\UserDto;
-use App\Domain\User\Entity\User;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @var User $this->resource */
 class UserResource extends JsonResource
 {
-    protected Collection $posts;
     /**
      * Transform the resource into an array.
      *
@@ -19,7 +14,6 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var UserDto $dto */
-        return $this->resource->toArray();
+        return parent::toArray($request);
     }
 }

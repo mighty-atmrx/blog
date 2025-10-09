@@ -64,9 +64,9 @@ readonly class CachedPostRepository implements PostRepositoryInterface
     /**
      * @throws PostNotFoundException
      */
-    public function update(array $data, int $id): Post
+    public function update(array $data, string|int $identifier): Post
     {
-        $post = $this->repository->update($data, $id);
+        $post = $this->repository->update($data, $identifier);
         $this->cache->put('posts:id:' . $post->getId(), $post, 86400);
         $this->cache->put('posts:slug:' . $post->getSlug(), $post, 86400);
         $this->cache->forget('posts:all');

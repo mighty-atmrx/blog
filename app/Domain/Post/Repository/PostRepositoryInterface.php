@@ -10,6 +10,6 @@ interface PostRepositoryInterface
     public function getByIdentifier(string|int $identifier): ?Post;
     public function getByUserId(int $userId): ?array;
     public function create(array $data): Post;
-    public function update(array $data, int $id): Post;
+    public function update(array $data, string|int $identifier): Post;
     public function delete(int $id): void;
 }

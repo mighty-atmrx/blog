@@ -20,9 +20,9 @@ class PostCommandService extends BaseService
         return PostDto::fromEntity($post);
     }
 
-    public function update(array $data, int $id): PostDto
+    public function update(array $data, string|int $identifier): PostDto
     {
-        $post = $this->repository->update($data, $id);
+        $post = $this->repository->update($data, $identifier);
         return PostDto::fromEntity($post);
     }
 

@@ -37,9 +37,9 @@ class PostRepository implements PostRepositoryInterface
     /**
      * @throws PostNotFoundException
      */
-    public function update(array $data, int $id): Post
+    public function update(array $data, string|int $identifier): Post
     {
-        $post = Post::query()->find($id);
+        $post = $this->getByIdentifier($identifier);
         if (!$post) {
             throw new PostNotFoundException();
         }
@@ -48,9 +48,16 @@ class PostRepository implements PostRepositoryInterface
         return $post;
     }
 
+    /**
+     * @throws PostNotFoundException
+     */
     public function delete(int $id): void
     {
         $post = $this->getByIdentifier($id);
+        if (!$post) {
+            throw new PostNotFoundException();
+        }
+
         $post->delete();
     }
 }

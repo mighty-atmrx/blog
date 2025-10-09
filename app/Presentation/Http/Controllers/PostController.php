@@ -61,7 +61,7 @@ class PostController extends Controller
         } catch (\Throwable $e) {
             $this->logger->error("Get user's posts error: " . $e->getMessage());
             return response()->json([
-                'error' => 'Unable to retrieve user posts. Please try again later.',
+                'error' => 'get_posts_by_user_id_error',
                 'code' => Response::HTTP_INTERNAL_SERVER_ERROR
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -83,14 +83,14 @@ class PostController extends Controller
         }
     }
 
-    public function update(UpdateRequest $request, int $id): JsonResponse
+    public function update(UpdateRequest $request, string|int $identifier): JsonResponse
     {
         try {
             $data = $request->validated();
-            $post = $this->commandService->update($data, $id);
+            $post = $this->commandService->update($data, $identifier);
             return response()->json(new PostResource($post), Response::HTTP_OK);
         } catch (\Throwable $e) {
-            $this->logger->error('Post update error.', ['post_id' => $id, 'error' => $e->getMessage()]);
+            $this->logger->error('Post update error.', ['post_identifier' => $identifier, 'error' => $e->getMessage()]);
             return response()->json([
                 'error' => 'post_update_error',
                 'code' => Response::HTTP_INTERNAL_SERVER_ERROR
